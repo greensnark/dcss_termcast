@@ -1,0 +1,19 @@
+Changes
+lib/RWS/TermCast.pm
+lib/RWS/TermCast/Auth.pm
+lib/RWS/TermCast/Catalog.pm
+lib/RWS/TermCast/Config.pm
+lib/RWS/TermCast/Consumer.pm
+lib/RWS/TermCast/Inetd.pm
+lib/RWS/TermCast/Provider.pm
+lib/RWS/TermCast/Recho.pm
+lib/RWS/TermCast/Telnet.pm
+Makefile.PL
+MANIFEST
+provider/ttrtail.c
+provider/Makefile
+README
+server/termcastd.pl
+t/RWS-TermCast.t
+TODO
+META.yml                                 Module meta-data (added by MakeMaker)

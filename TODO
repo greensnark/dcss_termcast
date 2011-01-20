@@ -1,0 +1,6 @@
+1. Consumer
+   1.1. command line arguments processing
+   1.2. windows version
+
+2. Server
+   2.1. cut duplicate producers
