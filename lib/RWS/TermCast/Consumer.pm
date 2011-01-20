@@ -16,6 +16,9 @@ use	constant	SCR_CLOSE =>
     "\e[24;1H\e[?1047l\e[?1048l\n\e[?1l\e[?25h\e>" ;
 use	constant	SCR_LINE => "\e[%dd%s\r\n" ;
 
+my $TERMCAST_BANNER_FILE = 'termcast-banner.txt' ;
+
+
 sub	_start : Object {
         my ($self, $sess, $sock) = @_[OBJECT, SESSION, ARG0] ;
 	logdbg(4, '_start (%s)', $self) ;
@@ -47,20 +50,54 @@ sub	serial_time {
 	return $s ;
 }
 
+sub banner_lines {
+  my $text = shift;
+  split(/\n/, $text)
+}
+
+sub     banner {
+  my $self = shift;
+
+  my $sessions = $self->sessions_text;
+  my $watchers = $self->watchers_text;
+  my $suffix = <<BANNER_SUFFIX;
+
+$sessions, $watchers connected
+
+During playback, hit 'q' to return here.
+BANNER_SUFFIX
+
+  my @suffix = banner_lines($suffix);
+  if (-r $TERMCAST_BANNER_FILE) {
+    my @text = do { local (@ARGV, $/) = $TERMCAST_BANNER_FILE; <> };
+    return (@text, @suffix)
+  }
+  else {
+    my $banner_text = <<BANNER;
+## Crawl TermCast
+## Service homepage: http://crawl.develz.org/
+## TermCast homepage: http://termcast.org/
+BANNER
+    return (banner_lines($banner_text), @suffix)
+  }
+}
+
+sub     sessions_text {
+  my $self = shift;
+  my $s_cnt = RWS::TermCast::Catalog->count('stream') ;
+  $s_cnt . ' active session' . ($s_cnt == 1 ? '' : 's');
+}
+
+sub     watchers_text {
+  my $self = shift;
+  my $w_cnt = RWS::TermCast::Catalog->count('watch') ;
+  $w_cnt . ' viewer'         . ($w_cnt == 1 ? '' : 's');
+}
+
 sub	display_menu {
     	my $self = shift ;
 	my $l = 2 ;
-	my $s_cnt = RWS::TermCast::Catalog->count('stream') ;
-	my $w_cnt = RWS::TermCast::Catalog->count('watch') ;
-        my $sessions = $s_cnt . ' active session' . ($s_cnt == 1 ? '' : 's');
-        my $watchers = $w_cnt . ' viewer'         . ($w_cnt == 1 ? '' : 's');
-	my @lines = (
-'## TermCast - public terminal session reflector',
-'## Service homepage is at http://noway.ratry.ru/jsn/termcast/',
-"## $sessions, $watchers connected",
-"During playback, hit 'q' to return here.",
-'',
-        ) ;
+	my @lines = $self->banner();
 
 	my @choices = RWS::TermCast::Catalog->list('stream') ;
 	if (@choices) {
