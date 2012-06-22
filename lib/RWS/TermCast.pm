@@ -25,7 +25,7 @@ sub	run {
     logconfig(%la) ;
     RWS::TermCast::Inetd->spawn({
 	alias => 'provider',
-	'socket' => 'tcp:localhost:31337',
+	'socket' => 'tcp:31337',
 	session_pkg => 'RWS::TermCast::Provider'
     }) ;
     RWS::TermCast::Inetd->spawn({

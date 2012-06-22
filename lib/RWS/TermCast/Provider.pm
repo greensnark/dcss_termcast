@@ -28,7 +28,7 @@ sub	input_auth : Object {
 	if ($data =~ s/^(.*)\r?\n\r?//) {
 	    my $hello = delete $self->{hello} ;
 	    $hello .= $1 ;
-	    if ($hello !~ /^hello\s+([\w-]+)\s+([\w-]+)/) {
+	    if ($hello !~ /^hello\s+([\S]+)\s+([\w-]+)/) {
 		$self->{wheel}->put("protocol mismatch\n") ;
 		delete $self->{wheel} ;
 		return undef ;
