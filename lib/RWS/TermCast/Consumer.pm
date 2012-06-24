@@ -17,10 +17,10 @@ use	constant	SCR_CLOSE =>
 use	constant	SCR_LINE => "\e[%dd%s\r\n" ;
 
 my $TERMCAST_BANNER_FILE = 'termcast-banner.txt' ;
-
+my $TICK = 2;
 
 sub	_start : Object {
-        my ($self, $sess, $sock) = @_[OBJECT, SESSION, ARG0] ;
+        my ($self, $sess, $sock, $poe) = @_[OBJECT, SESSION, ARG0, KERNEL] ;
 	logdbg(4, '_start (%s)', $self) ;
 	$self->{wheel} = new POE::Wheel::ReadWrite(
 	    Handle => $sock,
@@ -39,6 +39,8 @@ sub	_start : Object {
 	$self->{page} = 0 ;
 	RWS::TermCast::Catalog->register(watch => $sess->ID, $sess->ID) ;
 	$self->display_menu() ;
+
+    $poe->delay(tick => $TICK);
 }
 
 sub	serial_time {
@@ -225,6 +227,14 @@ sub	tn_input : Object {
 sub	output {
     	my ($self, $data) = @_ ;
 	$self->{wheel}->put($self->{tn}->filter_out($data)) if $self->{wheel} ;
+}
+
+sub tick : Object {
+  my ($self, $poe, $sess) = @_[OBJECT, KERNEL, SESSION];
+  if ($self->{mode} eq 'menu') {
+    $self->display_menu();
+  }
+  $poe->delay(tick => $TICK);
 }
 
 sub	input : Object {
