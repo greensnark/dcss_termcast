@@ -100,20 +100,50 @@ sub nocolor_length {
   length($text)
 }
 
+sub bolded_text {
+  my $text = shift;
+  "\e[1;37m$text\e[0m"
+}
+
+sub dim_text {
+  my $text = shift;
+  "\e[1;30m$text\e[0m"
+}
+
+sub dim_if_idle {
+  my ($text, $idle) = @_;
+  $idle ? dim_text($text) : $text
+}
+
+sub title_text {
+  my $text = shift;
+  "\e[0;33m$text\e[0m"
+}
+
+sub channel_name {
+  my ($c, $idle) = @_;
+  $idle ? $$c{desc} : bolded_text($$c{desc})
+}
+
 sub display_channel_desc {
   my ($key, $channel, $now) = @_;
+
+  my $idle = channel_is_idle($channel, $now);
   my $base =
     join(" ",
          grep($_,
-              "$key) \e[1;37m$$channel{desc}\e[0m",
-              channel_status($channel, $now)));
+              "$key)",
+              channel_name($channel, $idle),
+              dim_if_idle(channel_status($channel, $now), $idle)));
   my $title = channel_title($channel);
 
   my $space = 80 - (nocolor_length($base) + 2);
   return $base if $space < 10;
 
   $title = substr($title, 0, $space) if length($title) > $space;
-  "$base: \e[0;33m" . $title . "\e[0m"
+  return $base unless $title;
+
+  "$base: " . ($idle ? dim_text($title) : title_text($title))
 }
 
 sub channel_viewers {
@@ -127,10 +157,15 @@ sub channel_title {
   $c->{title}
 }
 
-sub channel_idle_flag {
+sub channel_is_idle {
   my ($c, $now) = @_;
   my $idle = $now - $c->{last_ts};
-  $idle > 10 && 'idle'
+  $idle > 10
+}
+
+sub channel_idle_flag {
+  my ($c, $now) = @_;
+  channel_is_idle($c, $now) && 'idle'
 }
 
 sub channel_status {
