@@ -58,7 +58,7 @@ sub	count {
 sub	list {
     	my ($pkg, $service) = @_ ;
 	return
-	    sort { $a->{desc} <=> $b->{desc} }
+	    sort { $a->{desc} cmp $b->{desc} }
 	    values %{$srv->{$service} || {}} ;
 
 	return map { { desc => $_, sid => $_, last_ts => 0 } } qw(
