@@ -55,7 +55,7 @@ sub	input_auth : Object {
 sub	input : Object {
     	my ($self, $poe, $sess, $data) = @_[OBJECT, KERNEL, SESSION, ARG0] ;
 	$poe->post($_, service_data => $data) for @{$self->{consumers}} ;
-    if ($data =~ s/\e\]2;(.*?)\007//) {
+    if ($data =~ /\e\]2;(.*?)\007/) {
       $self->{title} = $1;
       RWS::TermCast::Catalog->update_title(
 	    stream => $sess->ID, $self->{title}) ;
