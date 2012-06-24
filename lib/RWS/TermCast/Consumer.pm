@@ -94,6 +94,54 @@ sub     watchers_text {
   $w_cnt . ' viewer'         . ($w_cnt == 1 ? '' : 's');
 }
 
+sub nocolor_length {
+  my $text = shift;
+  $text =~ s/\e\[.*?m//g;
+  length($text)
+}
+
+sub display_channel_desc {
+  my ($key, $channel, $now) = @_;
+  my $base =
+    join(" ",
+         grep($_,
+              "$key) \e[1;37m$$channel{desc}\e[0m",
+              channel_status($channel, $now)));
+  my $title = channel_title($channel);
+
+  my $space = 80 - (nocolor_length($base) + 2);
+  return $base if $space < 10;
+
+  $title = substr($title, 0, $space) if length($title) > $space;
+  "$base: \e[0;33m" . $title . "\e[0m"
+}
+
+sub channel_viewers {
+  my $c = shift;
+  my $viewers = $c->{consumers};
+  $viewers && "v:$viewers"
+}
+
+sub channel_title {
+  my $c = shift;
+  $c->{title}
+}
+
+sub channel_idle_flag {
+  my ($c, $now) = @_;
+  my $idle = $now - $c->{last_ts};
+  $idle > 10 && 'idle'
+}
+
+sub channel_status {
+  my ($c, $now) = @_;
+  my $status = join(", ",
+                    grep($_,
+                         channel_viewers($c),
+                         channel_idle_flag($c, $now)));
+  $status && "(" . $status . ")"
+}
+
 sub	display_menu {
     	my $self = shift ;
 	my $l = 2 ;
@@ -115,16 +163,8 @@ sub	display_menu {
 	    my $key = "a" ;
 	    $self->{choices} = {} ;
 	    for (grep { $_ } @choices) {
-		push @lines,
-		    " $key) $_->{desc} (idle "
-		    . serial_time($now - $_->{last_ts})
-		    . ", connected "
-		    . serial_time($now - $_->{first_ts})
-		    . ", "
-		    . $_->{consumers}
-		    . " viewer" . ($_->{consumers} == 1 ? "" : "s")
-		    . ", $_->{len} bytes"
-		    . ")" ;
+          my $desc = display_channel_desc($key, $_, $now);
+		push @lines, $desc;
 		$self->{choices}->{$key} = $_->{sid} ;
 		$key ++ ;
 	    }

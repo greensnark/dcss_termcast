@@ -18,6 +18,13 @@ sub	register {
 	} ;
 }
 
+sub update_title {
+  my ($pkg, $service, $id, $title) = @_;
+  if (my $t = $srv->{$service}{$id}) {
+    $t->{title} = $title;
+  }
+}
+
 sub	update {
     	my ($pkg, $service, $id, $len) = @_ ;
 	if (my $t = $srv->{$service}{$id}) {
