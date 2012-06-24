@@ -11,10 +11,11 @@ use	POE qw(Session Wheel::ReadWrite Filter::Stream) ;
 use	POSIX qw(strftime) ;
 
 use	constant	SCR_OPEN =>
-    "\e(B\e)0\e[?1048h\e[?1047h\e[1;24r\e[m\x0f\e[4l\e[?7h\e[?1h\e=\e[H\e[2J" ;
+    "\e(B\e)0\e[?1048h\e[?1047h\e[1;24r\e[m\x0f\e[4l\e[?7h\e[?1h\e=\e[H";
+use constant    SCR_CLR => "\e[2J";
 use	constant	SCR_CLOSE =>
     "\e[24;1H\e[?1047l\e[?1048l\n\e[?1l\e[?25h\e>" ;
-use	constant	SCR_LINE => "\e[%dd%s\r\n" ;
+use	constant	SCR_LINE => "\e[%dd%s\e[K\r\n" ;
 
 my $TERMCAST_BANNER_FILE = 'termcast-banner.txt' ;
 my $TICK = 2;
@@ -180,7 +181,7 @@ sub channel_status {
 }
 
 sub	display_menu {
-    	my $self = shift ;
+    my ($self, $incremental_draw) = @_ ;
 	my $l = 2 ;
 	my @lines = $self->banner();
 
@@ -210,10 +211,16 @@ sub	display_menu {
 	}
 	push @lines, '' ;
 
-	my $txt = SCR_CLOSE . SCR_OPEN ;
+    my $txt;
+    if ($incremental_draw) {
+      $txt = SCR_OPEN;
+    } else {
+      $txt = SCR_CLOSE . SCR_OPEN . SCR_CLR ;
+    }
+
 	$txt .= sprintf(SCR_LINE, $_ + 2, $lines[$_]) for 0 .. $#lines ;
 	$txt .=
- "Watch which session? (any key refreshes, 'q' quits, '>'/'<' for next/prev) => " ;
+ "Watch which session? (any key refreshes, 'q' quits, '>'/'<' for next/prev) => \e[s\e[J\e[u" ;
 	$self->output($txt) ;
 }
 
@@ -232,7 +239,7 @@ sub	output {
 sub tick : Object {
   my ($self, $poe, $sess) = @_[OBJECT, KERNEL, SESSION];
   if ($self->{mode} eq 'menu') {
-    $self->display_menu();
+    $self->display_menu('incremental');
   }
   $poe->delay(tick => $TICK);
 }
