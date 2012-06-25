@@ -238,6 +238,7 @@ sub	output {
 
 sub tick : Object {
   my ($self, $poe, $sess) = @_[OBJECT, KERNEL, SESSION];
+  return if $self->{dead};
   if ($self->{mode} eq 'menu') {
     $self->display_menu('incremental');
   }
@@ -280,6 +281,7 @@ sub	input : Object {
 
 sub     flushed : Object {
     my ($self) = $_[OBJECT] ;
+    $self->{dead} = 1;
     delete $self->{wheel} ;
 }
 
@@ -310,6 +312,7 @@ sub	failure : Object {
 	    RWS::TermCast::Catalog->consumer_count(
 		stream => $self->{service_sid}, -1) ;
 	    $poe->post($self->{service_sid} => 'unregister') ;
+        $self->{dead} = 1;
 	    $self->{service_sid} = undef ;
 	}
 	delete $self->{wheel} ;
@@ -317,6 +320,7 @@ sub	failure : Object {
 
 sub	_stop : Object {
     	my ($self, $sess, $poe) = @_[OBJECT, SESSION, KERNEL] ;
+    $self->{dead} = 1;
 	RWS::TermCast::Catalog->unregister(watch => $sess->ID) ;
 }
 
