@@ -105,7 +105,7 @@ sub nocolor_length {
 
 sub bolded_text {
   my $text = shift;
-  "\e[1;37m$text\e[0m"
+  "\e[1m$text\e[0m"
 }
 
 sub dim_text {
@@ -238,7 +238,7 @@ sub	output {
 
 sub tick : Object {
   my ($self, $poe, $sess) = @_[OBJECT, KERNEL, SESSION];
-  return if $self->{dead};
+  return if $self->{dead} || !$self->{wheel};
   if ($self->{mode} eq 'menu') {
     $self->display_menu('incremental');
   }
@@ -312,9 +312,9 @@ sub	failure : Object {
 	    RWS::TermCast::Catalog->consumer_count(
 		stream => $self->{service_sid}, -1) ;
 	    $poe->post($self->{service_sid} => 'unregister') ;
-        $self->{dead} = 1;
 	    $self->{service_sid} = undef ;
 	}
+    $self->{dead} = 1;
 	delete $self->{wheel} ;
 }
 
