@@ -55,19 +55,16 @@ sub	serial_time {
 
 sub banner_lines {
   my $text = shift;
-  split(/\n/, $text)
+  split(/\n/, $text, -1)
 }
 
-sub     banner {
+sub banner {
   my $self = shift;
 
   my $sessions = $self->sessions_text;
   my $watchers = $self->watchers_text;
   my $suffix = <<BANNER_SUFFIX;
-
-$sessions, $watchers connected
-
-During playback, hit 'q' to return here.
+$sessions, $watchers connected. Hit 'q' to return here during playback
 BANNER_SUFFIX
 
   my @suffix = banner_lines($suffix);
@@ -77,9 +74,7 @@ BANNER_SUFFIX
   }
   else {
     my $banner_text = <<BANNER;
-## Crawl TermCast
-## Service homepage: http://crawl.develz.org/
-## TermCast homepage: http://termcast.org/
+Crawl: http://crawl.develz.org/, TermCast: http://termcast.org/
 BANNER
     return (banner_lines($banner_text), @suffix)
   }
@@ -182,29 +177,31 @@ sub channel_status {
 
 sub	display_menu {
     my ($self, $incremental_draw) = @_ ;
-	my $l = 2 ;
+	my $l = 1 ;
 	my @lines = $self->banner();
+
+    my $channels_per_page = 17;
 
 	my @choices = RWS::TermCast::Catalog->list('stream') ;
 	if (@choices) {
 	    my $now = time() ;
 	    my $p = $self->{page} || 0 ;
-	    my $maxp = int((@choices - 1) / 14) ;
-	    $p = $maxp if $p * 14 > @choices ;
+	    my $maxp = int((@choices - 1) / $channels_per_page) ;
+	    $p = $maxp if $p * $channels_per_page >= @choices ;
 	    $p = 0 if $p < 0 ;
 	    $self->{page} = $p if $self->{page} > $p ;
 	    push @lines,
 		sprintf(
 		    'The following sessions are in progress (page %d of %d):',
 		    $p + 1, $maxp + 1) ;
-	    @choices = @choices[$p * 14 .. ($p + 1) * 14] ;
+	    @choices = @choices[($p * $channels_per_page) .. ($p + 1) * $channels_per_page - 1] ;
 	    my $key = "a" ;
 	    $self->{choices} = {} ;
 	    for (grep { $_ } @choices) {
           my $desc = display_channel_desc($key, $_, $now);
-		push @lines, $desc;
-		$self->{choices}->{$key} = $_->{sid} ;
-		$key ++ ;
+          push @lines, $desc;
+          $self->{choices}->{$key} = $_->{sid} ;
+          $key ++ ;
 	    }
 	} else {
 	    push @lines, 'This service looks deserted...' ;
@@ -218,9 +215,9 @@ sub	display_menu {
       $txt = SCR_CLOSE . SCR_OPEN . SCR_CLR ;
     }
 
-	$txt .= sprintf(SCR_LINE, $_ + 2, $lines[$_]) for 0 .. $#lines ;
+	$txt .= sprintf(SCR_LINE, $_ + 1, $lines[$_]) for 0 .. $#lines ;
 	$txt .=
- "Watch which session? (any key refreshes, 'q' quits, '>'/'<' for next/prev) => \e[s\e[J\e[u" ;
+      "Watch which session? (any key refreshes, 'q' quits, '>'/'<' for next/prev) => \e[s\e[J\e[u" ;
 	$self->output($txt) ;
 }
 
