@@ -64,7 +64,7 @@ sub banner {
   my $sessions = $self->sessions_text;
   my $watchers = $self->watchers_text;
   my $suffix = <<BANNER_SUFFIX;
-$sessions, $watchers connected. Hit 'q' to return here during playback
+$sessions, $watchers connected. 'Q' returns here during playback
 BANNER_SUFFIX
 
   my @suffix = banner_lines($suffix);
@@ -217,7 +217,7 @@ sub	display_menu {
 
 	$txt .= sprintf(SCR_LINE, $_ + 1, $lines[$_]) for 0 .. $#lines ;
 	$txt .=
-      "Watch which session? (any key refreshes, 'q' quits, '>'/'<' for next/prev) => \e[s\e[J\e[u" ;
+      "Watch which session? (any key refreshes, 'Q' quits, '>'/'<' for next/prev) => \e[s\e[J\e[u" ;
 	$self->output($txt) ;
 }
 
@@ -251,7 +251,7 @@ sub	input : Object {
 	    } elsif ($data eq '<') {
 		$self->{page} -- if $self->{page} ;
 		$self->display_menu() ;
-	    } elsif ($data eq 'q') {
+	    } elsif ($data eq 'Q') {
 		$self->output(SCR_CLOSE) ;
                 $self->{wheel}->event(FlushedEvent => 'flushed') if $self->{wheel}
 	    } elsif (my $sid = $self->{choices}->{$data}) {
@@ -264,7 +264,7 @@ sub	input : Object {
 		$self->display_menu() ;
 	    }
 	} elsif ($self->{mode} eq 'watch') {
-	    if ($data eq 'q') {
+	    if (lc($data) eq 'q') {
 		$self->{mode} = 'menu' ;
 		$self->{page} = 0 ;
 		$poe->post($self->{service_sid} => 'unregister') ;
