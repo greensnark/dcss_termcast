@@ -1,3 +1,14 @@
+dcss_termcast
+=============
+
+A fork of RWS-TermCast that uses more space for the channel listing and
+provides an indicator of channel activity.
+
+(Used on termcast.develz.org)
+
+Original README follows.
+
+
 RWS-TermCast version 0.01
 =========================
 
