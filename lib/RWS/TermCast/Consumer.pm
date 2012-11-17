@@ -64,7 +64,7 @@ sub banner {
   my $sessions = $self->sessions_text;
   my $watchers = $self->watchers_text;
   my $suffix = <<BANNER_SUFFIX;
-$sessions, $watchers connected. 'Q' returns here during playback
+$sessions, $watchers connected. 'q' returns here during playback
 BANNER_SUFFIX
 
   my @suffix = banner_lines($suffix);
@@ -202,6 +202,7 @@ sub	display_menu {
           push @lines, $desc;
           $self->{choices}->{$key} = $_->{sid} ;
           $key ++ ;
+          ++$key if $key eq 'q';
 	    }
 	} else {
 	    push @lines, 'This service looks deserted...' ;
@@ -217,7 +218,7 @@ sub	display_menu {
 
 	$txt .= sprintf(SCR_LINE, $_ + 1, $lines[$_]) for 0 .. $#lines ;
 	$txt .=
-      "Watch which session? (any key refreshes, 'Q' quits, '>'/'<' for next/prev) => \e[s\e[J\e[u" ;
+      "Watch which session? (any key refreshes, 'q' quits, '>'/'<' for next/prev) => \e[s\e[J\e[u" ;
 	$self->output($txt) ;
 }
 
@@ -251,7 +252,7 @@ sub	input : Object {
 	    } elsif ($data eq '<') {
 		$self->{page} -- if $self->{page} ;
 		$self->display_menu() ;
-	    } elsif ($data eq 'Q') {
+	    } elsif (lc($data) eq 'q') {
 		$self->output(SCR_CLOSE) ;
                 $self->{wheel}->event(FlushedEvent => 'flushed') if $self->{wheel}
 	    } elsif (my $sid = $self->{choices}->{$data}) {
