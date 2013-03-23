@@ -58,32 +58,32 @@ sub banner_lines {
   split(/\n/, $text, -1)
 }
 
+sub termcast_status {
+  my $self = shift;
+  my $sessions = $self->sessions_text;
+  my $watchers = $self->watchers_text;
+  "$sessions, $watchers"
+}
+
 sub banner {
   my $self = shift;
 
-  my $sessions = $self->sessions_text;
-  my $watchers = $self->watchers_text;
-  my $suffix = <<BANNER_SUFFIX;
-$sessions, $watchers connected. 'q' returns here during playback
-BANNER_SUFFIX
-
-  my @suffix = banner_lines($suffix);
   if (-r $TERMCAST_BANNER_FILE) {
     my @text = do { local (@ARGV, $/) = $TERMCAST_BANNER_FILE; <> };
-    return (@text, @suffix)
+    return (@text)
   }
   else {
     my $banner_text = <<BANNER;
 Crawl: http://crawl.develz.org/, TermCast: http://termcast.org/
 BANNER
-    return (banner_lines($banner_text), @suffix)
+    return (banner_lines($banner_text))
   }
 }
 
 sub     sessions_text {
   my $self = shift;
   my $s_cnt = RWS::TermCast::Catalog->count('stream') ;
-  $s_cnt . ' active session' . ($s_cnt == 1 ? '' : 's');
+  $s_cnt . ' session' . ($s_cnt == 1 ? '' : 's');
 }
 
 sub     watchers_text {
@@ -180,7 +180,7 @@ sub	display_menu {
 	my $l = 1 ;
 	my @lines = $self->banner();
 
-    my $channels_per_page = 17;
+    my $channels_per_page = 19;
 
 	my @choices = RWS::TermCast::Catalog->list('stream') ;
 	if (@choices) {
@@ -192,7 +192,8 @@ sub	display_menu {
 	    $self->{page} = $p if $self->{page} > $p ;
 	    push @lines,
 		sprintf(
-		    'The following sessions are in progress (page %d of %d):',
+		    "%s (page %d/%d):",
+            $self->termcast_status(),
 		    $p + 1, $maxp + 1) ;
 	    @choices = @choices[($p * $channels_per_page) .. ($p + 1) * $channels_per_page - 1] ;
 	    my $key = "a" ;
