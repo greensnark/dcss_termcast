@@ -18,6 +18,13 @@ sub	register {
 	} ;
 }
 
+sub channel_name {
+  my ($pkg, $service, $id) = @_;
+  if (my $t = $srv->{$service}{$id}) {
+    return $t->{desc};
+  }
+}
+
 sub update_title {
   my ($pkg, $service, $id, $title) = @_;
   if (my $t = $srv->{$service}{$id}) {

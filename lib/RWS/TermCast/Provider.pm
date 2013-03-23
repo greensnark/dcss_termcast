@@ -54,31 +54,31 @@ sub	input_auth : Object {
 
 sub	input : Object {
     	my ($self, $poe, $sess, $data) = @_[OBJECT, KERNEL, SESSION, ARG0] ;
-	$poe->post($_, service_data => $data) for @{$self->{consumers}} ;
 
-    my $combined_data = $self->{stream} . $data;
-    if ($combined_data =~ /.*\e\]2;(.*?)\007/s) {
+    if ($data =~ /.*\e\]2;(.*?)\007/s) {
       $self->{title} = $1;
-      $self->{title_seq} = "\e]2;$self->{title}\007";
+      my $name = RWS::TermCast::Catalog->channel_name(stream => $sess->ID);
+      my $prefix = $name ? "$name: " : "";
+      $self->{title_seq} = "\e]2;$prefix$self->{title}\007";
+      $data =~ s/\e\]2;(?:.*?)\007/$self->{title_seq}/gs;
       RWS::TermCast::Catalog->update_title(
 	    stream => $sess->ID, $self->{title}) ;
     }
+	$poe->post($_, service_data => $data) for @{$self->{consumers}} ;
+
+    my $combined_data = $self->{stream} . $data;
 	if ($data =~ s/(.*)(\e\[2J)/$2/) {
 	    my $s = $self->{stream} . $1 ;
 	    my $p ;
 	    if (($p = rindex($s, "\e)")) != -1 && $p + 3 <= length($s)) {
 		$self->{init1} = substr($s, $p, 3) ;
 	    }
-#	    if (($p = rindex($s, "\e(")) != -1 && $p + 3 <= length($s)) {
-#		$self->{init2} = substr($s, $p, 3) ;
-#	    }
 	    $self->{stream} = ($self->{title_seq} || '') . $data ;
 	} else {
 	    $self->{stream} .= $data ;
 	}
 
 	# this is gonna hurt (rev3: told ya)
-#	$self->{stream} = substr($self->{stream}, 2e4)
 	substr($self->{stream}, 2e4, 7e4) = ''
 	    if length($self->{stream}) > 1e5 ;
 
